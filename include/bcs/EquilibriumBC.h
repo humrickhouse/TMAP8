@@ -10,7 +10,7 @@
 
 #include "ADNodalBC.h"
 
-class EquilibriumBC : public ADNodalBC
+class EquilibriumBC : public ADNodalBC, public MaterialPropertyInterface
 {
 public:
   EquilibriumBC(const InputParameters & parameters);
