@@ -21,14 +21,15 @@ protected:
   ADReal computeQpResidual() override;
 
   /// The equilibrium coefficient
-  const Real _K;
+  ///const Real _K;
+  const ADMaterialProperty<Real> & _K;
 
   const Real _p;
 
   /// The enclosure variable
   const ADVariableValue & _enclosure_var;
-
-  const Real _temp;
+  const ADVariableValue & _temp;
+  //const Real _temp;
 
   /// Boltzmann's constant
   const Real _kb;
