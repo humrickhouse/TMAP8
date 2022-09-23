@@ -7,7 +7,6 @@
 /************************************************************/
 
 #include "EquilibriumBC.h"
-#include "Material.h"
 
 registerMooseObject("TMAPApp", EquilibriumBC);
 
@@ -15,6 +14,7 @@ InputParameters
 EquilibriumBC::validParams()
 {
   auto params = ADNodalBC::validParams();
+  params += MaterialPropertyInterface::validParams();
   params.addRequiredParam<MaterialPropertyName>(
       "K", "The equilibrium coefficient $K$ for the relationship $C_i = KP_i^p$");
   params.addParam<Real>("p", 1, "The exponent $p$ in the relationship $C_i = KP_i^p$");
@@ -28,6 +28,7 @@ EquilibriumBC::validParams()
 
 EquilibriumBC::EquilibriumBC(const InputParameters & parameters)
   : ADNodalBC(parameters),
+    MaterialPropertyInterface(this, Moose::EMPTY_BLOCK_IDS, boundaryIDs()),
     _K(getADMaterialProperty<Real>("K")),
     _p(getParam<Real>("p")),
     _enclosure_var(adCoupledScalarValue("enclosure_scalar_var")),
