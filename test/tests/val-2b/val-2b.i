@@ -104,10 +104,11 @@ cl=1.0
 [BCs]
   [C_left]
     type = EquilibriumBC
-    K = ${solubility_BeO}
+    K = solubility_BeO
     boundary = left
-    enclosure_scalar_var = enclosure_pressure
-    temp = ${T_BeO}
+    #enclosure_scalar_var = enclosure_pressure
+    enclosure_scalar_var = 13300.0
+    temp = T_BeO
     variable = C_BeO
     p = 0.5
   []
@@ -145,42 +146,51 @@ cl=1.0
 [Materials]
   [./BeO_d]
     type = ParsedMaterial
-    f_name = 'diffusivity_BeO'
-    args = 'T_BeO'
-    function = 'if(t<182400, 1.40e-4*exp(-24408/T_BeO), 7e-5*exp(-24408/T_BeO))'
+    f_name = diffusivity_BeO
+# need to figure out how to enable fn of time:
+    #function = 'if(t<182400, 1.40e-4*exp(-24408/T_BeO), 7e-5*exp(-24408/T_BeO))'
+    #args = 't, T_BeO'
+    function = '1.40e-4*exp(-24408/T_BeO)'
+    args = T_BeO
+    block = 0
   [../]
   [./BeO_s]
-    type = ParsedMaterial
+    type = ADParsedMaterial
     f_name = 'solubility_BeO'
-    args = 'T_BeO'
+    args = T_BeO
     function = '5.00e20*exp(9377.7/T_BeO)'
+    block = 0
   [../]
   [./BeO_HT]
     type = GenericConstantMaterial
     prop_names = 'density_BeO  thermal_conductivity_BeO specific_heat_BeO'
     prop_values = '3010.0  159.2  996.67774'
+    block = 0
   [../]
   [./Be_d]
     type = ParsedMaterial
     f_name = 'diffusivity_Be'
-    args = 'T_Be'
+    args = T_Be
     function = '8.0e-9*exp(-4220/T_Be)'
+    block = 1
   [../]
   [./Be_s]
-    type = ParsedMaterial
+    type = ADParsedMaterial
     f_name = 'solubility_Be'
-    args = 'T_Be'
+    args = T_Be
     function = '7.156e27*exp(-11606/T_Be)'
+    block = 1
   [../]
   [./Be_HT]
     type = GenericConstantMaterial
     prop_names = 'density_Be  thermal_conductivity_Be specific_heat_Be'
     prop_values = '1850  168.0  1821.62162'
+    block = 1
   [../]
   [./interface_jump]
       type = SolubilityRatioMaterial
-      mat_prop_primary =   solubility_BeO
-      mat_prop_secondary = solubility_Be
+      solubility_primary =   solubility_BeO
+      solubility_secondary = solubility_Be
       boundary = interface
       concentration_primary = C_BeO
       concentration_secondary = C_Be
