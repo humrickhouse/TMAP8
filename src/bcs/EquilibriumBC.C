@@ -13,7 +13,7 @@ registerMooseObject("TMAPApp", EquilibriumBC);
 InputParameters
 EquilibriumBC::validParams()
 {
-  auto params = ADNodalBC::validParams();
+  auto params = NodalBC::validParams();
   params += MaterialPropertyInterface::validParams();
   params.addRequiredParam<MaterialPropertyName>(
       "K", "The equilibrium coefficient $K$ for the relationship $C_i = KP_i^p$");
@@ -27,20 +27,20 @@ EquilibriumBC::validParams()
 }
 
 EquilibriumBC::EquilibriumBC(const InputParameters & parameters)
-  : ADNodalBC(parameters),
+  : NodalBC(parameters),
     MaterialPropertyInterface(this, Moose::EMPTY_BLOCK_IDS, boundaryIDs()),
-    _K(getADMaterialProperty<Real>("K")),
+    _K(getMaterialProperty<Real>("K")),
     _p(getParam<Real>("p")),
-    _enclosure_var(adCoupledScalarValue("enclosure_scalar_var")),
-    _temp(adCoupledValue("temp")),
+    _enclosure_var(coupledScalarValue("enclosure_scalar_var")),
+    _temp(coupledValue("temp")),
     _kb(1.38e-23),
     _var_scaling_factor(getParam<Real>("var_scaling_factor")),
     _penalty(getParam<Real>("penalty"))
 {
 }
 
-ADReal
+Real
 EquilibriumBC::computeQpResidual()
 {
-  return /*_penalty * */ (_u /*[_qp]*/ - _K[_qp] * std::pow(_enclosure_var[0], _p));
+  return /*_penalty * */ (_u[_qp] - _K[_qp] * std::pow(_enclosure_var[0], _p));
 }

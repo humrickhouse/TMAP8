@@ -28,9 +28,9 @@ protected:
 
   const std::string _solubility_primary_name;
   const std::string _solubility_secondary_name;
-  const ADMaterialProperty<Real> & _solubility_primary;
-  const ADMaterialProperty<Real> & _solubility_secondary;
-  const ADVariableValue & _concentration_primary;
-  const ADVariableValue & _concentration_secondary;
-  ADMaterialProperty<Real> & _jump;
+  const MaterialProperty<Real> & _solubility_primary;
+  const MaterialProperty<Real> & _solubility_secondary;
+  const VariableValue & _concentration_primary;
+  const VariableValue & _concentration_secondary;
+  MaterialProperty<Real> & _jump;
 };

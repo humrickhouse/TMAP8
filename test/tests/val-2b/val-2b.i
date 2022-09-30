@@ -43,9 +43,9 @@ cl=1.0
 
 [Kernels]
   [./diff_BeO]
-    type = FunctionDiffusion
+    type = MatDiffusion
     variable = C_BeO
-    function = diffusivity_BeO
+    diffusivity = diffusivity_BeO
     block = 0
   [../]
   [./time_BeO]
@@ -54,9 +54,9 @@ cl=1.0
     block = 0
   [../]
   [./diff_Be]
-    type = FunctionDiffusion
+    type = MatDiffusion
     variable = C_Be
-    function = diffusivity_Be
+    diffusivity = diffusivity_Be
     block = 1
   [../]
   [./time_Be]
@@ -86,6 +86,8 @@ cl=1.0
   [./time_heat_Be]
     type = SpecificHeatConductionTimeDerivative
     variable = T_Be
+    density = density_Be
+    specific_heat = specific_heat_Be
     block = 1
   [../]
 []
@@ -106,8 +108,8 @@ cl=1.0
     type = EquilibriumBC
     K = solubility_BeO
     boundary = left
-    #enclosure_scalar_var = enclosure_pressure
-    enclosure_scalar_var = 13300.0
+    enclosure_scalar_var = ${fparse 13300.0}
+#    enclosure_scalar_var = ${fparse if(time<180015.0, 13300.000001, if(time<182400.0, 1e-6, 0.001))}
     temp = T_BeO
     variable = C_BeO
     p = 0.5
@@ -115,7 +117,7 @@ cl=1.0
   [C_right]
     type = NeumannBC
     variable = C_Be
-    value = 0
+    value = 0.0
     boundary = right
   []
   [T_left]
@@ -127,7 +129,7 @@ cl=1.0
   [T_right]
     type = NeumannBC
     variable = T_Be
-    value = 0
+    value = 0.0
     boundary = right
   []
 []
@@ -135,14 +137,43 @@ cl=1.0
 [Functions]
   [enclosure_pressure]
     type = ParsedFunction
-  value = 'if(t<180015.0, 13300.000001, if(t<182400.0, 1e-6, 0.001))' #=========================
+    value = '13300.0'
+    #value = 'if(t<180015.0, 13300.000001, if(t<182400.0, 1e-6, 0.001))' #=========================
   []
   [temperature_history]
     type = ParsedFunction
+    #value = '773.0'
     value = 'if(t<180000.0, 773.0, if(t<182400.0, 773.0-((1-exp(-(t-180000)/2700))*475), 300+0.05*(t-182400)))' #=========================
   []
 []
 
+[ICs]
+  [./C_BeO_IC]
+    type = ConstantIC
+    variable = C_BeO
+    value = 0.0
+    block = 0
+  []
+  [./C_Be_IC]
+    type = ConstantIC
+    variable = C_Be
+    value = 0.0
+    block = 1
+  []
+  [./T_BeO_IC]
+    type = ConstantIC
+    variable = T_BeO
+    value = 300.0
+    block = 0
+  []
+  [./T_Be_IC]
+    type = ConstantIC
+    variable = T_Be
+    value = 773.0
+    block = 1
+  []
+[]
+  
 [Materials]
   [./BeO_d]
     type = ParsedMaterial
@@ -155,7 +186,7 @@ cl=1.0
     block = 0
   [../]
   [./BeO_s]
-    type = ADParsedMaterial
+    type = ParsedMaterial
     f_name = 'solubility_BeO'
     args = T_BeO
     function = '5.00e20*exp(9377.7/T_BeO)'
@@ -175,7 +206,7 @@ cl=1.0
     block = 1
   [../]
   [./Be_s]
-    type = ADParsedMaterial
+    type = ParsedMaterial
     f_name = 'solubility_Be'
     args = T_Be
     function = '7.156e27*exp(-11606/T_Be)'
@@ -222,7 +253,7 @@ cl=1.0
   type = Transient
   end_time = 197860
   dt = 60.0
-  dtmin = .01
+  dtmin = 1.0e-6
   solve_type = NEWTON
   petsc_options_iname = '-pc_type -pc_hypre_type'
   petsc_options_value = 'hypre boomeramg'

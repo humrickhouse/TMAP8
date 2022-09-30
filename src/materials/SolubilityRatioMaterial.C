@@ -32,13 +32,11 @@ SolubilityRatioMaterial::SolubilityRatioMaterial(const InputParameters & paramet
   : InterfaceMaterial(parameters),
     _solubility_primary_name(getParam<std::string>("solubility_primary")),
     _solubility_secondary_name(getParam<std::string>("solubility_secondary")),
-    _solubility_primary(getADMaterialPropertyByName<Real>(_solubility_primary_name)),
-    _solubility_secondary(getNeighborADMaterialPropertyByName<Real>(_solubility_secondary_name)),
-//    _solubility_primary(getADMaterialProperty<Real>("solubility_primary")),
-//    _solubility_secondary(getNeighborADMaterialProperty<Real>("solubility_secondary")),
-    _concentration_primary(adCoupledValue("concentration_primary")),
-    _concentration_secondary(adCoupledNeighborValue("concentration_secondary")),
-    _jump(declareADProperty<Real>("solubility_ratio"))
+    _solubility_primary(getMaterialPropertyByName<Real>(_solubility_primary_name)),
+    _solubility_secondary(getNeighborMaterialPropertyByName<Real>(_solubility_secondary_name)),
+    _concentration_primary(coupledValue("concentration_primary")),
+    _concentration_secondary(coupledNeighborValue("concentration_secondary")),
+    _jump(declareProperty<Real>("solubility_ratio"))
 {
 }
 

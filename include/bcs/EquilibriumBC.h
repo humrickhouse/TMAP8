@@ -8,9 +8,9 @@
 
 #pragma once
 
-#include "ADNodalBC.h"
+#include "NodalBC.h"
 
-class EquilibriumBC : public ADNodalBC, public MaterialPropertyInterface
+class EquilibriumBC : public NodalBC, public MaterialPropertyInterface
 {
 public:
   EquilibriumBC(const InputParameters & parameters);
@@ -18,17 +18,17 @@ public:
   static InputParameters validParams();
 
 protected:
-  ADReal computeQpResidual() override;
+  Real computeQpResidual() override;
 
   /// The equilibrium coefficient
   ///const Real _K;
-  const ADMaterialProperty<Real> & _K;
+  const MaterialProperty<Real> & _K;
 
   const Real _p;
 
   /// The enclosure variable
-  const ADVariableValue & _enclosure_var;
-  const ADVariableValue & _temp;
+  const VariableValue & _enclosure_var;
+  const VariableValue & _temp;
   //const Real _temp;
 
   /// Boltzmann's constant
