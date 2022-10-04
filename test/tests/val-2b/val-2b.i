@@ -5,7 +5,7 @@ cl=1.0
   [./cmg]
     type = CartesianMeshGenerator
     dim = 1
-    dx = '1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 
+    dx = '1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9 1e-9
           1e-9 1e-8 1e-7 1e-6 1e-5 1.888e-5 1.888e-5 1.888e-5 1.888e-5 1.888e-5 1.888e-5 1.888e-5 1.888e-5 1.888e-5 1.888e-5'
     subdomain_id = '0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
                     1 1 1 1 1 1 1 1 1 1 1 1 1 1 1'
@@ -35,17 +35,19 @@ cl=1.0
   [../]
   [./T_BeO]
     block = 0
+    initial_condition = 773
   [../]
   [./T_Be]
     block = 1
+    initial_condition = 773
   [../]
 []
 
 [Kernels]
   [./diff_BeO]
-    type = FunctionDiffusion
+    type = MatDiffusion
     variable = C_BeO
-    function = diffusivity_BeO
+    diffusivity = diffusivity_BeO
     block = 0
   [../]
   [./time_BeO]
@@ -54,9 +56,9 @@ cl=1.0
     block = 0
   [../]
   [./diff_Be]
-    type = FunctionDiffusion
+    type = MatDiffusion
     variable = C_Be
-    function = diffusivity_Be
+    diffusivity = diffusivity_Be
     block = 1
   [../]
   [./time_Be]
@@ -87,12 +89,14 @@ cl=1.0
     type = SpecificHeatConductionTimeDerivative
     variable = T_Be
     block = 1
+    specific_heat = specific_heat_Be
+    density = density_Be
   [../]
 []
 
 [InterfaceKernels]
   [tied]
-    type = PenaltyInterfaceDiffusion
+    type = ADPenaltyInterfaceDiffusion
     variable = C_BeO
     neighbor_var = C_Be
     jump_prop_name = "solubility_ratio"
@@ -100,7 +104,7 @@ cl=1.0
     boundary = 'interface'
   []
 []
-  
+
 [BCs]
   [C_left]
     type = EquilibriumBC
@@ -196,7 +200,7 @@ cl=1.0
       concentration_secondary = C_Be
   [../]
 []
-  
+
 [Postprocessors]
   [outflux]
     type = SideDiffusiveFluxAverage
@@ -223,12 +227,14 @@ cl=1.0
   end_time = 197860
   dt = 60.0
   dtmin = .01
-  solve_type = NEWTON
+  solve_type = PJFNK
   petsc_options_iname = '-pc_type -pc_hypre_type'
   petsc_options_value = 'hypre boomeramg'
   automatic_scaling = true
+  off_diagonals_in_auto_scaling = true
   verbose = true
   compute_scaling_once = false
+  abort_on_solve_fail = true
 []
 
 [Outputs]
