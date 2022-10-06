@@ -1,5 +1,4 @@
-#cl=3.1622e18
-cl=1.0
+scale=1.0e24
 
 [Mesh]
   [./cmg]
@@ -29,23 +28,32 @@ cl=1.0
 [Variables]
   [./C_BeO]
     block = 0
+    initial_condition = 0
   [../]
   [./C_Be]
     block = 1
+    initial_condition = 0
   [../]
   [./T_BeO]
     block = 0
-    initial_condition = 773
+    initial_condition = 300
   [../]
   [./T_Be]
     block = 1
-    initial_condition = 773
+    initial_condition = 300
   [../]
 []
 
+[AuxVariables]
+  [./enclosure_pressure]
+    family = SCALAR
+    initial_condition = 13300.000001
+  [../]
+[]  
+  
 [Kernels]
   [./diff_BeO]
-    type = MatDiffusion
+    type = ADMatDiffusion
     variable = C_BeO
     diffusivity = diffusivity_BeO
     block = 0
@@ -56,7 +64,7 @@ cl=1.0
     block = 0
   [../]
   [./diff_Be]
-    type = MatDiffusion
+    type = ADMatDiffusion
     variable = C_Be
     diffusivity = diffusivity_Be
     block = 1
@@ -105,13 +113,21 @@ cl=1.0
   []
 []
 
+[AuxScalarKernels]
+  [./enclosure_pressure_aux]
+    type = FunctionScalarAux
+    variable = enclosure_pressure
+    function = enclosure_pressure_func
+  [../]
+[]
+
 [BCs]
   [C_left]
     type = EquilibriumBC
     K = solubility_BeO
     boundary = left
-    #enclosure_scalar_var = enclosure_pressure
-    enclosure_scalar_var = 13300.0
+    enclosure_scalar_var = enclosure_pressure
+    #enclosure_scalar_var = 13300.0
     temp = T_BeO
     variable = C_BeO
     p = 0.5
@@ -137,9 +153,9 @@ cl=1.0
 []
 
 [Functions]
-  [enclosure_pressure]
+  [enclosure_pressure_func]
     type = ParsedFunction
-  value = 'if(t<180015.0, 13300.000001, if(t<182400.0, 1e-6, 0.001))' #=========================
+    value = 'if(t<180015.0, 13300.000001, if(t<182400.0, 1e-6, 0.001))' #=========================
   []
   [temperature_history]
     type = ParsedFunction
@@ -149,20 +165,21 @@ cl=1.0
 
 [Materials]
   [./BeO_d]
-    type = ParsedMaterial
+    type = ADParsedMaterial
     f_name = diffusivity_BeO
 # need to figure out how to enable fn of time:
-    #function = 'if(t<182400, 1.40e-4*exp(-24408/T_BeO), 7e-5*exp(-24408/T_BeO))'
-    #args = 't, T_BeO'
-    function = '1.40e-4*exp(-24408/T_BeO)'
+    function = 'if(time<182400, 1.40e-4*exp(-24408/T_BeO), 7e-5*exp(-24408/T_BeO))'
+    #args = 'time  T_BeO'
+    #function = '1.40e-4*exp(-24408/T_BeO)'
     args = T_BeO
+    postprocessor_names = time
     block = 0
   [../]
   [./BeO_s]
     type = ADParsedMaterial
     f_name = 'solubility_BeO'
     args = T_BeO
-    function = '5.00e20*exp(9377.7/T_BeO)'
+    function = '5.00e20*exp(9377.7/T_BeO)/${scale}'
     block = 0
   [../]
   [./BeO_HT]
@@ -172,7 +189,7 @@ cl=1.0
     block = 0
   [../]
   [./Be_d]
-    type = ParsedMaterial
+    type = ADParsedMaterial
     f_name = 'diffusivity_Be'
     args = T_Be
     function = '8.0e-9*exp(-4220/T_Be)'
@@ -182,7 +199,7 @@ cl=1.0
     type = ADParsedMaterial
     f_name = 'solubility_Be'
     args = T_Be
-    function = '7.156e27*exp(-11606/T_Be)'
+    function = '7.156e27*exp(-11606/T_Be)/${scale}'
     block = 1
   [../]
   [./Be_HT]
@@ -199,19 +216,28 @@ cl=1.0
       concentration_primary = C_BeO
       concentration_secondary = C_Be
   [../]
+  [./AD_converter]
+    type = MaterialADConverter
+    ad_props_in = diffusivity_BeO
+    reg_props_out = diffusivity_BeO_noAD
+    block = 0
+  [../]
 []
 
 [Postprocessors]
   [outflux]
     type = SideDiffusiveFluxAverage
     boundary = 'left'
-    diffusivity = diffusivity_BeO
+    diffusivity = diffusivity_BeO_noAD
     variable = C_BeO
   []
   [scaled_outflux]
     type = ScalePostprocessor
     value = outflux
-    scaling_factor = ${cl}
+    scaling_factor = ${scale}
+  []
+  [time]
+    type = TimePostprocessor
   []
 []
 
@@ -225,11 +251,12 @@ cl=1.0
 [Executioner]
   type = Transient
   end_time = 197860
-  dt = 60.0
+  dt = 1.8
   dtmin = .01
   solve_type = PJFNK
+  #petsc_options = '-pc_svd_monitor -ksp_view_pmat'
   petsc_options_iname = '-pc_type -pc_hypre_type'
-  petsc_options_value = 'hypre boomeramg'
+  petsc_options_value = 'svd boomeramg'
   automatic_scaling = true
   off_diagonals_in_auto_scaling = true
   verbose = true
