@@ -47,5 +47,7 @@ SolubilityRatioMaterial::computeQpProperties()
 {
   mooseAssert(_neighbor_elem, "Neighbor elem is NULL!");
   //*  _jump[_qp] = _concentration_primary[_qp] - _concentration_secondary[_qp];
-  _jump[_qp] = _concentration_primary[_qp]*(_solubility_secondary[_qp]/_solubility_primary[_qp] - 1);
+  //  _jump[_qp] = _concentration_primary[_qp]*(_solubility_secondary[_qp]/_solubility_primary[_qp] - 1);
+    _jump[_qp] = _concentration_primary[_qp]/_solubility_primary[_qp] - _concentration_secondary[_qp]/_solubility_secondary[_qp];
+    //_jump[_qp] = 0.0;
 }
