@@ -1,4 +1,4 @@
-scale=1.0e24
+scale=1.0e21
 
 [Mesh]
   [./cmg]
@@ -108,7 +108,7 @@ scale=1.0e24
     variable = C_BeO
     neighbor_var = C_Be
     jump_prop_name = "solubility_ratio"
-    penalty = 1e6
+    penalty = 1e2
     boundary = 'interface'
   []
 []
@@ -231,6 +231,10 @@ scale=1.0e24
     diffusivity = diffusivity_BeO_noAD
     variable = C_BeO
   []
+  [Temperature]
+    type = FunctionValuePostprocessor
+    function = temperature_history
+  []
   [scaled_outflux]
     type = ScalePostprocessor
     value = outflux
@@ -251,8 +255,8 @@ scale=1.0e24
 [Executioner]
   type = Transient
   end_time = 197860
-  dt = 1.8
-  dtmin = .01
+  dt = 60.0
+  dtmin = 1.0e-9
   solve_type = PJFNK
   #petsc_options = '-pc_svd_monitor -ksp_view_pmat'
   petsc_options_iname = '-pc_type -pc_hypre_type'
@@ -261,7 +265,7 @@ scale=1.0e24
   off_diagonals_in_auto_scaling = true
   verbose = true
   compute_scaling_once = false
-  abort_on_solve_fail = true
+  abort_on_solve_fail = false
 []
 
 [Outputs]
@@ -275,4 +279,5 @@ scale=1.0e24
     execute_on = initial
   []
   perf_graph = true
+  checkpoint = true
 []
